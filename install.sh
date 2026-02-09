@@ -2,7 +2,7 @@
 set -e
 
 REPO="ArcBlock/useteamswarm"
-INSTALL_DIR="${TEAMSWARM_INSTALL_DIR:-/usr/local/bin}"
+INSTALL_DIR="${TEAMSWARM_INSTALL_DIR:-$HOME/.local/bin}"
 
 # Detect platform
 OS="$(uname -s)"
@@ -38,12 +38,24 @@ TMPFILE="$(mktemp)"
 curl -fsSL -o "$TMPFILE" "$URL"
 chmod +x "$TMPFILE"
 
-echo "Installing to ${INSTALL_DIR}/teamswarm..."
-if [ -w "$INSTALL_DIR" ]; then
-  mv "$TMPFILE" "${INSTALL_DIR}/teamswarm"
-else
-  sudo mv "$TMPFILE" "${INSTALL_DIR}/teamswarm"
-fi
+# Ensure install directory exists
+mkdir -p "$INSTALL_DIR"
 
+echo "Installing to ${INSTALL_DIR}/teamswarm..."
+mv "$TMPFILE" "${INSTALL_DIR}/teamswarm"
+
+echo ""
 echo "TeamSwarm ${TAG} installed successfully!"
+
+# Check if install dir is in PATH
+case ":$PATH:" in
+  *":${INSTALL_DIR}:"*) ;;
+  *)
+    echo ""
+    echo "Add to your PATH:"
+    echo "  export PATH=\"${INSTALL_DIR}:\$PATH\""
+    ;;
+esac
+
+echo ""
 echo "Run 'teamswarm --help' to get started."

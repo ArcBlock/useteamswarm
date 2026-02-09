@@ -30,7 +30,7 @@
     }
 
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
       padding: 0 24px;
     }
@@ -113,7 +113,7 @@
 
     .alt-install {
       text-align: center;
-      margin-bottom: 60px;
+      margin-bottom: 16px;
     }
     .alt-install a {
       color: var(--text-dim);
@@ -124,10 +124,52 @@
       color: var(--cyan);
     }
 
+    /* Desktop download */
+    .desktop-download {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .download-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .download-btn:hover {
+      border-color: var(--purple);
+      color: var(--purple);
+    }
+    .download-btn .icon { font-size: 18px; }
+    .download-btn .label-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .or-divider {
+      color: var(--text-dim);
+      font-size: 13px;
+      margin: 12px 0;
+    }
+
     /* Features */
     .features {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 16px;
       margin-bottom: 60px;
     }
@@ -204,11 +246,16 @@
     }
     footer a:hover { color: var(--cyan); }
 
+    @media (max-width: 768px) {
+      .features { grid-template-columns: 1fr 1fr; }
+    }
+
     @media (max-width: 600px) {
       .hero { padding: 48px 0 40px; }
       .banner { font-size: 10px; }
       .features { grid-template-columns: 1fr; }
       .install-box code { font-size: 12px; }
+      .download-buttons { flex-direction: column; align-items: center; }
     }
   </style>
 </head>
@@ -225,7 +272,22 @@
         <button class="copy-btn" onclick="copyInstall()">Copy</button>
       </div>
       <div class="alt-install">
-        <a href="https://github.com/ArcBlock/useteamswarm/releases">or download binaries directly →</a>
+        <a href="https://github.com/ArcBlock/useteamswarm/releases">or download CLI binary directly →</a>
+      </div>
+
+      <div class="or-divider">— or —</div>
+
+      <div class="desktop-download">
+        <div class="download-buttons" id="downloadButtons">
+          <a class="download-btn" id="dmgDownload" href="https://github.com/ArcBlock/useteamswarm/releases/latest">
+            <span class="icon">🍎</span>
+            <span>Desktop App<br><span class="label-sub">macOS (.dmg)</span></span>
+          </a>
+          <a class="download-btn" id="linuxDownload" href="https://github.com/ArcBlock/useteamswarm/releases/latest">
+            <span class="icon">🐧</span>
+            <span>Desktop App<br><span class="label-sub">Linux (.AppImage)</span></span>
+          </a>
+        </div>
       </div>
     </section>
 
@@ -245,6 +307,14 @@
       <div class="feature">
         <h3>Web Dashboard</h3>
         <p>Real-time Web UI to monitor agents, review tasks, approve or reject work, and interact with running agents.</p>
+      </div>
+      <div class="feature">
+        <h3>Desktop App</h3>
+        <p>Native macOS and Linux app. Frameless window blends with your theme. Tray icon for quick access. Auto-manages daemon lifecycle.</p>
+      </div>
+      <div class="feature">
+        <h3>CLI + Daemon</h3>
+        <p>Headless CLI for servers and CI. Daemon runs in background, Web UI at localhost:7483. Desktop and CLI share the same daemon.</p>
       </div>
     </section>
 
@@ -267,11 +337,12 @@
     </div>
 
     <section class="platforms">
-      <h2>Supported Platforms</h2>
+      <h2>Available On</h2>
       <div class="platform-list">
-        <span>macOS Apple Silicon</span>
-        <span>macOS Intel</span>
-        <span>Linux x64</span>
+        <span>macOS Desktop (.dmg)</span>
+        <span>macOS CLI (arm64 / x64)</span>
+        <span>Linux Desktop (.AppImage)</span>
+        <span>Linux CLI (x64)</span>
       </div>
     </section>
   </div>
@@ -290,12 +361,22 @@
       });
     }
 
-    // Fetch latest version from GitHub API
+    // Fetch latest version and desktop download links from GitHub API
     fetch('https://api.github.com/repos/ArcBlock/useteamswarm/releases/latest')
       .then(r => r.json())
       .then(data => {
         if (data.tag_name) {
           document.getElementById('version').textContent = data.tag_name;
+        }
+        if (data.assets) {
+          for (const asset of data.assets) {
+            const name = asset.name.toLowerCase();
+            if (name.endsWith('.dmg')) {
+              document.getElementById('dmgDownload').href = asset.browser_download_url;
+            } else if (name.endsWith('.appimage')) {
+              document.getElementById('linuxDownload').href = asset.browser_download_url;
+            }
+          }
         }
       })
       .catch(() => {});
